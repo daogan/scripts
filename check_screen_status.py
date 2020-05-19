@@ -2,7 +2,8 @@
 
 """ A script to log the daily screen time on a Macbook.
 
-Help to track how much time spend on a computer everyday.
+Track how much time the user spend on a computer everyday.
+
 Sample output:
 
 Date               	Screen time	Power-on time
