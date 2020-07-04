@@ -1,6 +1,6 @@
 #!/usr/bin/python
 
-""" A script to log daily key strokes statistic.
+""" A script to log daily key stroke statistics.
 
 Sample output:
 
@@ -20,7 +20,7 @@ LOG_FILE = '/Users/me/work/misc/keyboard.log'
 INTERVAL = 10
 INTERVAL_FLUSH = 600
 
-kmap = {}
+keymap = {}
 
 def on_press(key):
     try:
@@ -29,10 +29,10 @@ def on_press(key):
         kchar = '{0}'.format(key).split('.')[1]
     if kchar is None:
         kchar = '{0}'.format(key)
-    kmap.setdefault(kchar, 0)
-    kmap[kchar] += 1
-    kmap.setdefault('total', 0)
-    kmap['total'] += 1
+    keymap.setdefault(kchar, 0)
+    keymap[kchar] += 1
+    keymap.setdefault('total', 0)
+    keymap['total'] += 1
 
 def on_release(key):
     pass
@@ -80,33 +80,33 @@ def run_loop():
         with open(LOG_FILE, 'r+') as f:
             lines = f.readlines()
 
-        last_date, mday = lines[-2].split('\t')
+        last_date, mlast = lines[-2].split('\t')
         _, mtotal = lines[-1].split('\t')
-        mday = json.loads(mday)
+        mlast = json.loads(mlast)
         mtotal = json.loads(mtotal)
-        global kmap
-        if dict_gt(kmap, mday):
-            delta_day = dict_sub(kmap, mday)
+        global keymap
+        if dict_gt(keymap, mlast):
+            delta_day = dict_sub(keymap, mlast)
         else: # may be a reboot
-            delta_day = kmap
-            kmap = dict_add(kmap, mday)
+            delta_day = keymap
+            keymap = dict_add(keymap, mlast)
         mtotal = dict_add(mtotal, delta_day)
 
-        odday =  OrderedDict(sorted(kmap.iteritems(), key=lambda x: x[1], reverse=True))
-        mday = json.dumps(odday)
-        odtotal =  OrderedDict(sorted(mtotal.iteritems(), key=lambda x: x[1], reverse=True))
-        mtotal = json.dumps(odtotal)
+        okeymap =  OrderedDict(sorted(keymap.iteritems(), key=lambda x: x[1], reverse=True))
+        mlast = json.dumps(okeymap)
+        ototal =  OrderedDict(sorted(mtotal.iteritems(), key=lambda x: x[1], reverse=True))
+        mtotal = json.dumps(ototal)
 
         now_date = tts(now)
         if last_date[:10] == now_date[:10]:
-            lines[-2] = '%s\t%s\n' % (now_date, mday)
+            lines[-2] = '%s\t%s\n' % (now_date, mlast)
             lines[-1] = '%s\t%s\n' % (_fmt('Total', 19), mtotal)
         else: # cross day
-            lines[-2] = '%s\t%s\n' % (last_date, mday)
+            lines[-2] = '%s\t%s\n' % (last_date, mlast)
             lines[-1] = '%s\t{}\n' % now_date
             lines.append('%s\t%s\n' % (_fmt('Total', 19), mtotal))
-            # reset kmap at begining of new day
-            kmap= {}
+            # reset keymap at begining of new day
+            keymap= {}
 
         with open(LOG_FILE, 'r+') as f:
             f.seek(0)
